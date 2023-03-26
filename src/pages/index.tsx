@@ -6,7 +6,6 @@ import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import { api, RouterOutputs } from "~/utils/api";
 
 const CreatePostWizard = () => {
-
   const { user } = useUser();
 
   console.log(user);
@@ -15,38 +14,45 @@ const CreatePostWizard = () => {
 
   return (
     <div className="flex gap-3" w-full>
-      <img 
+      <img
         src={user.profileImageUrl}
         alt="Profile image"
         className="h-14 w-14 rounded-full"
       />
-      <input 
+      <input
         placeholder="Type some emojis!"
-        className="bg-transparent grow outline-none"
+        className="grow bg-transparent outline-none"
       />
     </div>
   );
 };
 
-
 type PostWithUser = RouterOutputs["posts"]["getAll"][number];
 
-const PostView = (props {posts}) => {
-
-
-
-}
+const PostView = (props: PostWithUser) => {
+  const { post, author } = props;
+  return (
+    <div key={post.id} className="flex gap-3 border-b border-slate-400 p-4">
+      <img src={author.profileImageUrl} className="h-14 w-14 rounded-full" />
+      <div className="flax-col flex">
+        <div className="flex">
+          <span>{`@${author.username}`}</span>
+        </div>
+        <span>{post.content}</span>
+      </div>
+    </div>
+  );
+};
 
 const Home: NextPage = () => {
-
   const user = useUser();
 
   const { data, isLoading } = api.posts.getAll.useQuery();
- 
+
   if (isLoading) return <div>Loading...</div>;
 
   if (!data) return <div>Something went wrong</div>;
-  
+
   return (
     <>
       <Head>
@@ -55,22 +61,21 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex h-screen justify-center">
-      <div className="h-full w-full border-x border-slate-400 md:max-w-2xl ">
-        <div className="border-b border-slate-400 p-4">
-          {!user.isSignedIn && (
-            <div className="flex justify-center">
-              <SignInButton />
-            </div>
-          )}
-          {user.isSignedIn && <CreatePostWizard />}
+        <div className="h-full w-full border-x border-slate-400 md:max-w-2xl ">
+          <div className="border-b border-slate-400 p-4">
+            {!user.isSignedIn && (
+              <div className="flex justify-center">
+                <SignInButton />
+              </div>
+            )}
+            {user.isSignedIn && <CreatePostWizard />}
+          </div>
+          <div className="flex flex-col">
+            {[...data, ...data]?.map((fullPost) => (
+              <PostView {...fullPost} key={fullPost.post.id} />
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col">
-          {[...data, ...data]?.map(({ post, author } ) => (
-          <div key={post.id} className="p-B border-b border-slate-400 p-8">
-            {post.content}</div>
-          ))}
-        </div>
-      </div>
       </main>
     </>
   );
